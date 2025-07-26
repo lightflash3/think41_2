@@ -34,3 +34,23 @@ def get_user_sessions(user_id: int, db: Session = Depends(get_db)):
 @app.get("/sessions/{session_id}/messages/", response_model=List[schemas.Message])
 def get_session_messages(session_id: int, db: Session = Depends(get_db)):
     return crud.get_session_messages(db, session_id)
+
+@app.post("/api/chat", response_model=schemas.ChatResponse)
+def chat(payload: schemas.ChatRequest, db: Session = Depends(get_db)):
+    # Create session if not provided
+    if payload.session_id is None:
+        new_session = crud.create_session(db, schemas.SessionCreate(user_id=payload.user_id))
+        session_id = new_session.id
+    else:
+        session_id = payload.session_id
+
+    # Store user message
+    crud.create_message(db, session_id, schemas.MessageCreate(sender="user", content=payload.message))
+
+    # Generate dummy bot response (replace with real model later)
+    bot_reply = f"You said: {payload.message}"
+
+    # Store bot response
+    crud.create_message(db, session_id, schemas.MessageCreate(sender="bot", content=bot_reply))
+
+    return schemas.ChatResponse(session_id=session_id, response=bot_reply)

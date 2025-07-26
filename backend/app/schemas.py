@@ -34,3 +34,13 @@ class User(BaseModel):
 
     class Config:
         orm_mode = True
+
+
+class ChatRequest(BaseModel):
+    user_id: int
+    message: str
+    session_id: Optional[int] = None
+
+class ChatResponse(BaseModel):
+    session_id: int
+    response: str
