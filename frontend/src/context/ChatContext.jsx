@@ -1,38 +1,47 @@
-import React, { createContext, useContext, useReducer } from 'react';
+// ChatContext.jsx
+import React, { createContext, useContext, useState } from "react";
 
 const ChatContext = createContext();
 
-const initialState = {
-  messages: [],
-  userInput: '',
-  isLoading: false,
-};
+export const ChatProvider = ({ children }) => {
+  const [messages, setMessages] = useState([]);
+  const [input, setInput] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
+  const [conversationHistory, setConversationHistory] = useState([]); // For Milestone 8
 
-function chatReducer(state, action) {
-  switch (action.type) {
-    case 'SET_INPUT':
-      return { ...state, userInput: action.payload };
-    case 'ADD_MESSAGE':
-      return { ...state, messages: [...state.messages, action.payload] };
-    case 'SET_LOADING':
-      return { ...state, isLoading: action.payload };
-    case 'CLEAR_INPUT':
-      return { ...state, userInput: '' };
-    default:
-      return state;
-  }
-}
+  const addMessage = (message) => {
+    setMessages((prev) => [...prev, message]);
+  };
 
-export function ChatProvider({ children }) {
-  const [state, dispatch] = useReducer(chatReducer, initialState);
+  const clearInput = () => setInput("");
+
+  const loadConversation = (sessionId) => {
+    const session = conversationHistory.find((s) => s.id === sessionId);
+    if (session) setMessages(session.messages);
+  };
+
+  const saveConversation = (session) => {
+    setConversationHistory((prev) => [...prev, session]);
+  };
 
   return (
-    <ChatContext.Provider value={{ state, dispatch }}>
+    <ChatContext.Provider
+      value={{
+        messages,
+        input,
+        setInput,
+        addMessage,
+        clearInput,
+        isLoading,
+        setIsLoading,
+        conversationHistory,
+        loadConversation,
+        saveConversation,
+      }}
+    >
       {children}
     </ChatContext.Provider>
   );
-}
+};
 
-export function useChat() {
-  return useContext(ChatContext);
-}
+export const useChat = () => useContext(ChatContext);
