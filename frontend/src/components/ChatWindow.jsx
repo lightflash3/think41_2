@@ -1,29 +1,34 @@
-import React, { useState } from 'react';
+import React from 'react';
 import MessageList from './MessageList';
 import UserInput from './UserInput';
+import { useChat } from '../context/ChatContext';
 
-const ChatWindow = () => {
-  const [messages, setMessages] = useState([]);
+export default function ChatWindow() {
+  const { dispatch } = useChat();
 
-  const handleSend = (text) => {
-    if (!text.trim()) return;
+  const sendMessage = async (text) => {
+    dispatch({ type: 'SET_LOADING', payload: true });
+    dispatch({ type: 'ADD_MESSAGE', payload: { role: 'user', text } });
 
-    const userMessage = { sender: 'user', text };
-    setMessages(prev => [...prev, userMessage]);
+    try {
+      const response = await fetch('http://localhost:8000/chat', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ message: text }),
+      });
+      const data = await response.json();
+      dispatch({ type: 'ADD_MESSAGE', payload: { role: 'ai', text: data.reply } });
+    } catch (error) {
+      dispatch({ type: 'ADD_MESSAGE', payload: { role: 'ai', text: 'Error communicating with AI.' } });
+    }
 
-    // Mock AI response (replace this with LLM API call)
-    const aiResponse = { sender: 'ai', text: `You said: ${text}` };
-    setTimeout(() => {
-      setMessages(prev => [...prev, aiResponse]);
-    }, 500);
+    dispatch({ type: 'SET_LOADING', payload: false });
   };
 
   return (
-    <div className="chat-window">
-      <MessageList messages={messages} />
-      <UserInput onSend={handleSend} />
+    <div className="flex flex-col h-screen">
+      <MessageList />
+      <UserInput onSend={sendMessage} />
     </div>
   );
-};
-
-export default ChatWindow;
+}

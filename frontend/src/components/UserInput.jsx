@@ -1,25 +1,35 @@
-import React, { useState } from 'react';
+import React from 'react';
+import { useChat } from '../context/ChatContext';
 
-const UserInput = ({ onSend }) => {
-  const [text, setText] = useState('');
+export default function UserInput({ onSend }) {
+  const { state, dispatch } = useChat();
 
-  const handleSubmit = (e) => {
-    e.preventDefault();
-    onSend(text);
-    setText('');
+  const handleChange = (e) => {
+    dispatch({ type: 'SET_INPUT', payload: e.target.value });
+  };
+
+  const handleSend = () => {
+    if (state.userInput.trim()) {
+      onSend(state.userInput);
+      dispatch({ type: 'CLEAR_INPUT' });
+    }
   };
 
   return (
-    <form className="user-input" onSubmit={handleSubmit}>
+    <div className="flex gap-2 p-4">
       <input
         type="text"
-        value={text}
+        value={state.userInput}
+        onChange={handleChange}
         placeholder="Type your message..."
-        onChange={(e) => setText(e.target.value)}
+        className="flex-1 px-4 py-2 border rounded-xl"
       />
-      <button type="submit">Send</button>
-    </form>
+      <button
+        onClick={handleSend}
+        className="bg-blue-500 text-white px-4 py-2 rounded-xl"
+      >
+        Send
+      </button>
+    </div>
   );
-};
-
-export default UserInput;
+}

@@ -1,13 +1,12 @@
 import React from 'react';
 
-const Message = ({ sender, text }) => {
-  const isUser = sender === 'user';
-
+export default function Message({ role, text }) {
+  const isUser = role === 'user';
   return (
-    <div className={`message ${isUser ? 'user' : 'ai'}`}>
-      <p>{text}</p>
+    <div className={`mb-2 ${isUser ? 'text-right' : 'text-left'}`}>
+      <span className={`inline-block px-4 py-2 rounded-xl ${isUser ? 'bg-blue-500 text-white' : 'bg-gray-300 text-black'}`}>
+        {text}
+      </span>
     </div>
   );
-};
-
-export default Message;
+}
