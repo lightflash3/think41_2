@@ -3,7 +3,8 @@ from sqlalchemy.orm import Session
 from . import models, schemas, crud
 from .database import engine, SessionLocal, Base
 from typing import List, Optional, Dict
-
+from .llm import get_llm_response
+import asyncio
 Base.metadata.create_all(bind=engine)
 
 app = FastAPI()
@@ -54,3 +55,12 @@ def chat(payload: schemas.ChatRequest, db: Session = Depends(get_db)):
     crud.create_message(db, session_id, schemas.MessageCreate(sender="bot", content=bot_reply))
 
     return schemas.ChatResponse(session_id=session_id, response=bot_reply)
+
+@app.post("/ask-agent/")
+async def ask_agent(input: dict):
+    user_input = input.get("query", "")
+    if not user_input:
+        return {"error": "Missing query"}
+
+    llm_response = await get_llm_response(user_input)
+    return {"response": llm_response}
